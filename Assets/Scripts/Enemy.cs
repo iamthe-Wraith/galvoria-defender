@@ -7,10 +7,6 @@ public class Enemy : MonoBehaviour
 {
     [SerializeField] ParticleSystem explosionVFX;
 
-    [SerializeField] Transform parent;
-
-    [SerializeField] TextMeshProUGUI hitPointsText;
-
     [Tooltip("The number of points the player is awarded for destroying this enemy")]
     [SerializeField]
     int points;
@@ -18,16 +14,32 @@ public class Enemy : MonoBehaviour
     [SerializeField] int hitPoints = 10;
 
     ScoreBoard scoreBoard;
+    GameObject parentGameObject;
     int startingHitPoints;
 
 
     void Start()
-    {
-        scoreBoard = FindObjectOfType<ScoreBoard>();
-        startingHitPoints = hitPoints;
-    }
+  {
+    scoreBoard = FindObjectOfType<ScoreBoard>();
+    startingHitPoints = hitPoints;
 
-    private void OnParticleCollision(GameObject other)
+    AddRigidBody();
+    AddParent();
+  }
+
+  private void AddRigidBody()
+  {
+    Rigidbody rb = gameObject.AddComponent<Rigidbody>();
+    rb.useGravity = false;
+  }
+
+  private void AddParent()
+  {
+    parentGameObject = GameObject.FindWithTag("SpawnAtRuntime");
+  }
+  
+
+  private void OnParticleCollision(GameObject other)
     {
         Debug.Log($"{name} hit by {other.gameObject.name}");
         ProcessHit();
@@ -41,21 +53,14 @@ public class Enemy : MonoBehaviour
         }
         
         ParticleSystem vfx = Instantiate(explosionVFX, transform.position, Quaternion.identity);
-        vfx.transform.parent = parent;
+        vfx.transform.parent = parentGameObject.transform;
         Destroy(gameObject);
     }
 
     private void ProcessHit()
     {
         hitPoints -= 10;
-
-        Debug.Log("hitpoints: " + hitPoints);
-        Debug.Log("startingHitPoints: " + startingHitPoints);
-        double dec = ((double)hitPoints / (double)startingHitPoints);
-        Debug.Log(dec);
-        Debug.Log("calc2: " + Mathf.Round((float)(((double)hitPoints / (double)startingHitPoints) * 100.0)));
-
-        hitPointsText.text = $"{Mathf.Round((float)(((double)hitPoints / (double)startingHitPoints) * 100.0))}%";
+        // float hitPointsPercent = Mathf.Round((float)(((float)hitPoints / (float)startingHitPoints) * 100.0))
 
         if (hitPoints <= 0)
         {
